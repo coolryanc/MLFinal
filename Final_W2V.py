@@ -1,5 +1,5 @@
 import jieba
-import os
+import os, re
 from gensim.models import word2vec
 from keras.preprocessing.text import Tokenizer
 
@@ -13,6 +13,22 @@ def read_training_data(path):
                 train_data.append(line)
     return train_data
 
+def read_testing_data(path):
+    testing_data = []
+    with open(path, 'r') as data:
+        lines = data.read().splitlines()[1:]
+        for line in lines:
+            sentences = line.split(',')[1:]
+            for sentence in sentences:
+                sentence = re.sub(r"A:", r"", sentence)
+                sentence = re.sub(r"B:", r"", sentence)
+                sentence = re.sub(r"，", r"", sentence)
+                sentence = re.sub(r"...", r"", sentence)
+                tmp = sentence.split()
+                for item in tmp:
+                    testing_data.append(item)
+    return testing_data
+
 def cut(train_data):
     jieba.set_dictionary('extra_dict/dict.txt.big')
 
@@ -22,7 +38,7 @@ def cut(train_data):
         temp = ''
         words = jieba.cut(line, cut_all=False)
         for word in words:
-            output.write(str(word))
+            output.write(str(word)+' ')
         output.write('\n')
         train_text.append(temp)
     output.close()
@@ -30,9 +46,13 @@ def cut(train_data):
 def main():
 
     #read train data
-    data_path = os.path.join('.', 'provideData', 'training_data')
-    train_data = read_training_data(data_path)
+    test_data_path = os.path.join('.', 'provideData', 'testing_data.csv')
+    train_data_path = os.path.join('.', 'provideData', 'training_data')
 
+    test_data = read_testing_data(test_data_path)
+    train_data = read_training_data(train_data_path)
+
+    train_data = train_data + test_data
     #cut sentece to words
     cut(train_data)
 

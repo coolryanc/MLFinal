@@ -11,6 +11,7 @@ def read_training_data(path):
             lines = data.read().splitlines()
             for line in lines:
                 train_data.append(line)
+    print(train_data[0:100])
     return train_data
 
 def read_testing_data(path):
@@ -22,8 +23,6 @@ def read_testing_data(path):
             for sentence in sentences:
                 sentence = re.sub(r"A:", r"", sentence)
                 sentence = re.sub(r"B:", r"", sentence)
-                sentence = re.sub(r"，", r"", sentence)
-                sentence = re.sub(r"...", r"", sentence)
                 tmp = sentence.split()
                 for item in tmp:
                     testing_data.append(item)
@@ -44,15 +43,14 @@ def cut(train_data):
     output.close()
 
 def main():
-
     #read train data
     test_data_path = os.path.join('.', 'provideData', 'testing_data.csv')
     train_data_path = os.path.join('.', 'provideData', 'training_data')
 
-    test_data = read_testing_data(test_data_path)
+    # test_data = read_testing_data(test_data_path)
     train_data = read_training_data(train_data_path)
 
-    train_data = train_data + test_data
+    train_data = train_data
     #cut sentece to words
     cut(train_data)
 

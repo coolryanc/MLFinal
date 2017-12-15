@@ -8,7 +8,7 @@ from keras.layers.merge import dot
 from keras.layers.merge import concatenate
 from keras.layers.normalization import BatchNormalization
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-import sys, os
+from keras.utils import plot_model
 import parseData
 
 def pair_traing_and_label(trainData, embedding_matrix):
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     print(target_y_train.shape)
     VALIDATION_SPLIT = 0.1
     EMBEDDING_DIM = 200
-    EPOCH = 20
+    EPOCH = 25
     BATCH_SIZE = 64
     CELL_SIZE = 256
     decoder_inputs_dim = target_y_train.shape[2]
@@ -66,7 +66,8 @@ if __name__ == '__main__':
 
     decoder_inputs = Input(shape=(None,))
     x = Embedding(word_num, EMBEDDING_DIM, weights=[embedding_matrix], input_length=sequence_length, trainable=False)(decoder_inputs)
-    x = LSTM(CELL_SIZE, return_sequences=True)(x, initial_state=encoder_states)
+    x, _, _ = LSTM(CELL_SIZE, return_sequences=True, return_state=True)(x, initial_state=encoder_states)
+
     decoder_outputs = Dense(decoder_inputs_dim, activation='softmax')(x)
 
     # Define the model that will turn
@@ -76,24 +77,33 @@ if __name__ == '__main__':
     # Compile & run training
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
     model.summary()
+    # plot_model(model, to_file='model.png', show_shapes=True)
 
+    earlystopping = EarlyStopping(monitor='val_loss', patience = 10)
+    checkpoint = ModelCheckpoint(filepath='./model/currentBest.h5', save_best_only=True, monitor='val_loss')
     model.fit([X_train, y_train], decoder_target_data,
               batch_size=BATCH_SIZE,
-              epochs=1,
-              validation_split=0.1
+              epochs=EPOCH,
+              callbacks=[earlystopping, checkpoint]
               )
+    model.save('./model/s2sModel.h5') # save model
+
+    #-----------------------------------------------------------------------#
     encoder_model = Model(encoder_inputs, encoder_states)
     encoder_model.save('./model/s2sEncoder.h5')
-
+    #
     decoder_state_input_h = Input(shape=(CELL_SIZE,))
     decoder_state_input_c = Input(shape=(CELL_SIZE,))
+
     decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
-    decoder_outputs, state_h, state_c = decoder_lstm(
-        decoder_inputs, initial_state=decoder_states_inputs)
+    e_x = Embedding(word_num, EMBEDDING_DIM, weights=[embedding_matrix], input_length=sequence_length, trainable=False)(decoder_inputs)
+    decoder_outputs, state_h, state_c =LSTM(CELL_SIZE, return_sequences=True, return_state=True)(e_x, initial_state=decoder_states_inputs)
+
     decoder_states = [state_h, state_c]
-    decoder_outputs = decoder_dense(decoder_outputs)
+    decoder_outputs = Dense(decoder_inputs_dim, activation='softmax')(decoder_outputs)
     decoder_model = Model(
         [decoder_inputs] + decoder_states_inputs,
         [decoder_outputs] + decoder_states)
-    decoder_model.summary()
     decoder_model.save('./model/s2sDecoder.h5')
+    # plot_model(encoder_model, to_file='encoder_model.png', show_shapes=True)
+    # plot_model(decoder_model, to_file='decoder_model.png', show_shapes=True)

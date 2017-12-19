@@ -8,7 +8,7 @@ from keras.layers.merge import dot
 from keras.layers.merge import concatenate
 from keras.layers.normalization import BatchNormalization
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.utils import plot_model
+# from keras.utils import plot_model
 import parseData
 
 def pair_traing_and_label(trainData, embedding_matrix):
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     VALIDATION_SPLIT = 0.1
     EMBEDDING_DIM = 200
     EPOCH = 16
-    BATCH_SIZE = 32
+    BATCH_SIZE = 64
     CELL_SIZE = 256
     decoder_inputs_dim = y_train.shape[2]
 
@@ -74,14 +74,14 @@ if __name__ == '__main__':
     model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 
     # Run training
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+    model.compile(optimizer='rmsprop', loss='mse')
     earlystopping = EarlyStopping(monitor='val_loss', patience = 10)
     checkpoint = ModelCheckpoint(filepath='./model/currentBest.h5', save_best_only=True, monitor='val_loss')
     model.summary()
-    plot_model(model, to_file='newModel.png', show_shapes=True)
-    model.fit([X_train[:128], y_train[:128]], decoder_target_data[:128],
+    # plot_model(model, to_file='newModel.png', show_shapes=True)
+    model.fit([X_train, y_train], decoder_target_data,
               batch_size=64,
-              epochs=1,
+              epochs=3,
               # callbacks=[earlystopping, checkpoint]
               )
     model.save('./model/s2sModel.h5') # save model
@@ -104,5 +104,5 @@ if __name__ == '__main__':
         [decoder_outputs] + decoder_states)
     decoder_model.summary()
     decoder_model.save('./model/s2sDecoder.h5')
-    plot_model(encoder_model, to_file='new_encoder_model.png', show_shapes=True)
-    plot_model(decoder_model, to_file='new_decoder_model.png', show_shapes=True)
+    # plot_model(encoder_model, to_file='new_encoder_model.png', show_shapes=True)
+    # plot_model(decoder_model, to_file='new_decoder_model.png', show_shapes=True)

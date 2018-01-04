@@ -27,9 +27,9 @@ if __name__ == '__main__':
     encoded_docs = t.texts_to_sequences(all_training)
     padded_docs = pad_sequences(encoded_docs, maxlen=MAX_SEQ_LEN)
 
-    duplicate_num = 2
+    duplicate_num = 4 #4
     data_len = len(padded_docs)
-    shift_bias = 100
+    shift_bias = 250 #300
 
     y_train = np.concatenate((np.ones(data_len), np.zeros(data_len)), axis=0)
     for i in range(duplicate_num - 1):
@@ -63,8 +63,8 @@ if __name__ == '__main__':
     net_seq_two = input_seq_two
     net_seq_two = Embedding(vocab_size, EMBEDDING_DIM, weights=[embedding_matrix], input_length=MAX_SEQ_LEN, trainable=False)(net_seq_two)
 
-    net_seq_one = Bidirectional(GRU(128, dropout=0.2, recurrent_dropout=0.2))(net_seq_one)
-    net_seq_two = Bidirectional(GRU(128, dropout=0.2, recurrent_dropout=0.2))(net_seq_two)
+    net_seq_one = Bidirectional(GRU(256, dropout=0.2, recurrent_dropout=0.2))(net_seq_one)
+    net_seq_two = Bidirectional(GRU(256, dropout=0.2, recurrent_dropout=0.2))(net_seq_two)
 
     dot_product = dot([net_seq_one, net_seq_two], axes= 1)
     output = Dense(1, activation='sigmoid')(dot_product)
@@ -74,5 +74,5 @@ if __name__ == '__main__':
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     # plot_model(model, to_file='Model.png', show_shapes=True)
     print(model.summary())
-    model.fit([training_seq_one, training_seq_two], y_train, epochs=15, batch_size=128, verbose=2)
-    model.save('./model/Model.h5')
+    model.fit([training_seq_one, training_seq_two], y_train, epochs=8, batch_size=128)
+    model.save('./model/Model_250_4.h5')

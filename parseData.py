@@ -43,8 +43,8 @@ def cut_sentence(_str):
     stops = read_stopWord()
     words = jieba.cut(_str, cut_all=False)
     for word in words:
-        if word not in stops:
-            s += str(word) + ' '
+        # if word not in stops:
+        s += str(word) + ' '
     s = s.strip()
     return s
 

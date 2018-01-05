@@ -37,7 +37,7 @@ def main(argv):
     model = load_model('./model/Model_400_5.h5')
 
     predict = [np.zeros((len(testingQuestions),1)) for i in range(6)]
-    for m in ['./model/Model_400_5.h5', './model/Model_300_4.h5']:
+    for m in ['./model/Model_400_5.h5', './model/Model_300_4.h5', './model/Model_250_4.h5']:
         model = load_model(m)
         for i in range(6):
             predict[i] += model.predict([test_sequence, answer_sequence[i]])
